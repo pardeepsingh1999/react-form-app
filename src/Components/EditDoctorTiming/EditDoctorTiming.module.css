@@ -1,0 +1,28 @@
+.HeaderText {
+    margin: 20px;
+}
+
+.doctorTimingForm {
+    margin: 20px;
+}
+
+.childDays {
+    font-size: 30px;
+    color: gray;
+}
+
+.addTimeBtn {
+    margin-top: 5px;
+    font-size: 15px;
+    /* padding: 5px 10px 5px 10px; */
+}
+
+.addTimeBtn:hover {
+    background-color: blueviolet;
+}
+
+.addTimeBtn:focus, .addTimeBtn:active {
+    box-shadow: none !important;
+    outline: none !important;
+    outline-style: none !important;
+}
