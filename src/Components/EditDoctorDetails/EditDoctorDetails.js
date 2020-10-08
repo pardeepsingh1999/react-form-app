@@ -295,7 +295,7 @@ export default class EditDoctorDetails extends Component {
                     break;
                 }
                 default: {
-                    console.log('error not found key in validation');
+                    console.log('error: not found key in validation');
                     break;
                 }
             } 

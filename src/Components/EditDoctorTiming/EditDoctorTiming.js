@@ -1,20 +1,514 @@
 import React, { Component } from 'react'
-import { Button } from 'reactstrap';
+import { Button, FormGroup, Input } from 'reactstrap';
 
 import classes from './EditDoctorTiming.module.css';
-// import { makeGetRequest } from '../../http/http-service';
+import { makeGetRequest } from '../../http/http-service';
 
 export default class EditDoctorTiming extends Component {
 
     state = {
-
+        timingLabels: [
+            { label:'08:00 AM', value:8  },
+            { label:'09:00 AM', value:9  },
+            { label:'10:00 AM', value:10 },
+            { label:'11:00 AM', value:11 },
+            { label:'12:00 PM', value:12 },
+            { label:'01:00 PM', value:13 },
+            { label:'02:00 PM', value:14 },
+            { label:'03:00 PM', value:15 },
+            { label:'04:00 PM', value:16 },
+            { label:'05:00 PM', value:17 },
+            { label:'06:00 PM', value:18 },
+            { label:'07:00 PM', value:19 },
+            { label:'08:00 PM', value:20 },
+            { label:'09:00 PM', value:21 },
+            { label:'10:00 PM', value:22 },
+        ],
+        doctorTiming: {
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: [],
+            saturday: [],
+            sunday: []
+        },
+        isDirty: {
+            monday: false,
+            tuesday: false,
+            wednesday: false,
+            thursday: false,
+            friday: false,
+            saturday: false,
+            sunday: false
+        },
+        errors: {}
     }
 
-    _handleAddTimingdd = () => {
-        console.log('work')
+    componentDidMount() {
+        makeGetRequest(
+            'http://178.128.127.115:3000/admin/v1/user/doc/5ede37431a52c86dba7f0051',
+            true,
+            null
+        )
+        .then(res => {
+            console.log('get doctor res: ', res.doctor.availability)
+            let availability = res.doctor.availability;
+            let doctorTiming = {
+                monday: [],
+                tuesday: [],
+                wednesday: [],
+                thursday: [],
+                friday: [],
+                saturday: [],
+                sunday: []
+            }
+            for(let a of availability) {
+                doctorTiming[a.day.toLowerCase()].push({from:a.from,to:a.to})
+            }
+            // console.log(doctorTiming)
+            this.setState({ doctorTiming }, () => {
+                console.log(this.state.doctorTiming)
+            })
+        })
+        .catch(err => {
+            console.log(err)
+            alert('somthing went wrong')
+        })
+    }
+
+    _handleOnChange = (day,index,value) => {
+        const { doctorTiming, isDirty } = this.state;
+        if(value.from) {
+            doctorTiming[day][index].from = value.from;
+        } else {
+            doctorTiming[day][index].to = value.to;
+        }
+
+        isDirty[day] = true;
+
+        this.setState({ doctorTiming, isDirty },()=>{
+            this._validateTimingForm()
+            console.log('onChange, ', this.state)
+        })
+    }
+
+    _validateTimingForm = () => {
+        const { doctorTiming, errors, isDirty } = this.state;
+        Object.keys(doctorTiming).forEach((each) => {
+            switch(each) {
+                case 'monday': {
+                    if (isDirty.monday) {
+                        for(let i=0; i<doctorTiming.monday.length; i++) {
+                            let obj = doctorTiming.monday[i]
+                            let obj2 = doctorTiming.monday[i+1] ? doctorTiming.monday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.monday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'tuesday': {
+                    if (isDirty.tuesday) {
+                        for(let i=0; i<doctorTiming.tuesday.length; i++) {
+                            let obj = doctorTiming.tuesday[i]
+                            let obj2 = doctorTiming.tuesday[i+1] ? doctorTiming.tuesday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.tuesday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'wednesday': {
+                    if (isDirty.wednesday) {
+                        for(let i=0; i<doctorTiming.wednesday.length; i++) {
+                            let obj = doctorTiming.wednesday[i]
+                            let obj2 = doctorTiming.wednesday[i+1] ? doctorTiming.wednesday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.wednesday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'thursday': {
+                    if (isDirty.thursday) {
+                        for(let i=0; i<doctorTiming.thursday.length; i++) {
+                            let obj = doctorTiming.thursday[i]
+                            let obj2 = doctorTiming.thursday[i+1] ? doctorTiming.thursday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.thursday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'friday': {
+                    if (isDirty.friday) {
+                        for(let i=0; i<doctorTiming.friday.length; i++) {
+                            let obj = doctorTiming.friday[i]
+                            let obj2 = doctorTiming.friday[i+1] ? doctorTiming.friday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.friday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'saturday': {
+                    if (isDirty.saturday) {
+                        for(let i=0; i<doctorTiming.saturday.length; i++) {
+                            let obj = doctorTiming.saturday[i]
+                            let obj2 = doctorTiming.saturday[i+1] ? doctorTiming.saturday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.saturday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'sunday': {
+                    if (isDirty.sunday) {
+                        for(let i=0; i<doctorTiming.sunday.length; i++) {
+                            let obj = doctorTiming.sunday[i]
+                            let obj2 = doctorTiming.sunday[i+1] ? doctorTiming.sunday[i+1] : null;
+                            // console.log(obj,obj2)
+                            if(!obj.from || obj.from === '') {
+                                errors[each] = "*From timing is Required";
+                                break;
+
+                            } else if(!obj.to || obj.to === '') {
+                                errors[each] = "*To timing is Required";
+                                break;
+
+                            } else if (obj.from>obj.to) {
+                                errors[each] = "*From should be less than to";
+                                break;
+
+                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
+                                errors[each] = "*From timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
+                                errors[each] = "*To timing is overlap";
+                                break;
+
+                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
+                                errors[each] = "*Timing is overlap";
+                                break;
+
+                            } else {
+                                if(i === doctorTiming.sunday.length-1) {
+                                    delete errors[each];
+                                    isDirty.name = false;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                default: {
+                    console.log('error: not found key in validation');
+                    break;
+                }
+            }
+        })
+        this.setState({ errors });
+        return Object.keys(errors).length ? errors : null;
+    }
+
+
+    _handleAddTimingdd = (day) => {
+        const { doctorTiming } = this.state;
+        // this.state[day] = [...this.state[day],{from:'',to:''}]
+        doctorTiming[day] = [...doctorTiming[day],{from:'',to:''}];
+
+        this.setState({doctorTiming},()=>{
+            console.log('added, ',doctorTiming)
+        })
+    }
+
+    _handleDeleteTimedd = (day, index) => {
+        const { doctorTiming } = this.state;
+        // this.state[day] = [...this.state[day],{from:'',to:''}]
+        doctorTiming[day].splice(index,1);
+
+        this.setState({doctorTiming},()=>{
+            console.log('deleted, ',doctorTiming)
+        })
+    }
+
+    _handleSubmitTimingData = (e) => {
+        e.preventDefault();
+        let isDirty = {
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: true,
+            sunday: true
+        }
+        this.setState({ isDirty }, () => {
+            let errors = this._validateTimingForm();
+            console.log(errors);
+            if (!errors) {
+                  const { doctorTiming } = this.state;
+                  // doctorDetials['speciality'] = specialties.find(e => e.id === this.state.doctorDetials.speciality)
+                  console.log("Make API call: ", doctorTiming);
+            }
+          });
+    }
+
+    _handleTimingddStructure = (day, index, value) => {
+
+        const { timingLabels } = this.state;
+
+        const fromTimingOptions = timingLabels.map( t => {
+            return <option key={t.value} value={t.value}>{t.label}</option>
+        })
+        
+        const toTimingOptions = timingLabels.map( t => {
+            if(t.value <= value.from) return null;
+            return <option key={t.value} value={t.value}>{t.label}</option>
+        })
+
+        return <>
+        <FormGroup key={index} className={[classes.selectTimedd,'col-5'].join(' ')}>
+            <Input type="select" 
+            onChange={(e) => 
+                this._handleOnChange(day,index,{'from': parseInt(e.target.value) ? parseInt(e.target.value) : ''})
+            }
+            value={value.from}
+            name="speciality" id="exampleSpeciality">
+            <option value="">Select From Timing</option>
+
+            {fromTimingOptions}
+            
+            </Input>
+        </FormGroup>
+        <FormGroup className={[classes.selectTimedd,'col-5'].join(' ')}>
+            <Input type="select" 
+            onChange={(e) => 
+                this._handleOnChange(day,index,{'to': parseInt(e.target.value) ? parseInt(e.target.value) : ''})
+            }
+            value={value.to}
+            name="speciality" id="exampleSpeciality">
+            <option value="">Select To Timing</option>
+
+            {toTimingOptions}
+            
+            </Input>
+        </FormGroup>
+        <Button onClick={() => this._handleDeleteTimedd(day,index)}
+            outline color="danger"
+            className={[classes.timeDeleteBtn,'col-2'].join(' ')}>
+            Delete
+        </Button>
+    </>
     }
 
     render() {
+
+        const { doctorTiming, errors } = this.state;
+
+        const mondayTiming = React.Children.toArray(doctorTiming.monday.map((m, i) => {
+            return this._handleTimingddStructure('monday',i,m)
+        }))
+
+        const tuesdayTiming = React.Children.toArray(doctorTiming.tuesday.map((m, i) => {
+            return this._handleTimingddStructure('tuesday',i,m)
+        }))
+
+        const wednesdayTiming = React.Children.toArray(doctorTiming.wednesday.map((m, i) => {
+            return this._handleTimingddStructure('wednesday',i,m)
+        }))
+        
+        const thursdayTiming = React.Children.toArray(doctorTiming.thursday.map((m, i) => {
+            return this._handleTimingddStructure('thursday',i,m)
+        }))
+
+        const fridayTiming = React.Children.toArray(doctorTiming.friday.map((m, i) => {
+            return this._handleTimingddStructure('friday',i,m)
+        }))
+
+        const saturdayTiming = React.Children.toArray(doctorTiming.saturday.map((m, i) => {
+            return this._handleTimingddStructure('saturday',i,m)
+        }))
+
+        const sundayTiming = React.Children.toArray(doctorTiming.sunday.map((m, i) => {
+            return this._handleTimingddStructure('sunday',i,m)
+        }))
     
         return (
             <div className="container">
@@ -26,81 +520,185 @@ export default class EditDoctorTiming extends Component {
                         <label className={classes.childDays}>
                             Monday
                         </label>
-                        <Button onClick={this._handleAddTimingdd}
+                        <Button title="Add Monday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('monday')}
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {mondayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.monday}
+                                </div>
+                            )}
+                        </div>
+                        
                     </div>
                     
+                    <hr />
+
                     <div>
                         <label className={classes.childDays}>
                             Tuesday
                         </label>
-                        <Button onClick={this._handleAddTimingdd} 
+                        <Button title="Add Tuesday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('tuesday')} 
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {tuesdayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.tuesday}
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                     
+                    <hr />
+
                     <div>
                         <label className={classes.childDays}>
                             Wednesday
                         </label>
-                        <Button onClick={this._handleAddTimingdd} 
+                        <Button title="Add Wednesday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('wednesday')}
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {wednesdayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.wednesday}
+                                </div>
+                            )}
+                        </div>
+
                     </div>
+
+                    <hr />
 
                     <div>
                         <label className={classes.childDays}>
                             Thursday
                         </label>
-                        <Button onClick={this._handleAddTimingdd} 
+                        <Button title="Add Thursday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('thursday')}
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {thursdayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.thursday}
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                     
+                    <hr />
+
                     <div>
                         <label className={classes.childDays}>
                             Friday
                         </label>
-                        <Button onClick={this._handleAddTimingdd} 
+                        <Button title="Add Friday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('friday')}
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {fridayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.friday}
+                                </div>
+                            )}
+                        </div>
+
                     </div>               
+
+                    <hr />
 
                     <div>
                         <label className={classes.childDays}>
                             Saturday
                         </label>
-                        <Button onClick={this._handleAddTimingdd} 
+                        <Button title="Add Saturday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('saturday')}
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {saturdayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.saturday}
+                                </div>
+                            )}
+                        </div>
+
                     </div>               
                     
+                    <hr />
+
                     <div>
                         <label className={classes.childDays}>
                             Sunday
                         </label>
-                        <Button onClick={this._handleAddTimingdd} 
+                        <Button title="Add Sunday Time" outline color="primary"
+                        onClick={() => this._handleAddTimingdd('sunday')}
                         className={[classes.addTimeBtn,'float-right'].join(' ')}>
-                            <i className="fas fa-plus"></i>
+                            Add <i className="fas fa-plus"></i>
                         </Button>
-                        <hr />
+
+                        <div className="row">
+                            {sundayTiming}
+
+                            {errors && (
+                                <div className={[classes.validationError,'col-12'].join(' ')}>
+                                    {errors.sunday}
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                 
+                    <hr />
+
+                    <div>
+                        <button onClick={this._handleSubmitTimingData}
+                        className={[classes.timeSubmitBtn,'float-right'].join(' ')}>
+                            Save
+                        </button>
+                    </div>
+
                 </div>
             </div>
         )
     }
 }
+
+
+// const str = 'hello world!';
+// const result = /^hello/.test(str);
+// let str = 'Abc abc abc'
+// str.match(/abc/)
