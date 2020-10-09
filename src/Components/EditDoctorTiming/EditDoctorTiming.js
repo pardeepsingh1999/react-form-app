@@ -4,6 +4,8 @@ import { Button, FormGroup, Input } from 'reactstrap';
 import classes from './EditDoctorTiming.module.css';
 import { makeGetRequest } from '../../http/http-service';
 
+// import '../loader.css';
+
 export default class EditDoctorTiming extends Component {
 
     state = {
@@ -63,9 +65,10 @@ export default class EditDoctorTiming extends Component {
                 saturday: [],
                 sunday: []
             }
-            for(let a of availability) {
+            //nfor each 
+            availability.forEach(a => {
                 doctorTiming[a.day.toLowerCase()].push({from:a.from,to:a.to})
-            }
+            })
             // console.log(doctorTiming)
             this.setState({ doctorTiming }, () => {
                 console.log(this.state.doctorTiming)
@@ -79,18 +82,67 @@ export default class EditDoctorTiming extends Component {
 
     _handleOnChange = (day,index,value) => {
         const { doctorTiming, isDirty } = this.state;
-        if(value.from) {
+
+        let stateUpdate = true;
+
+        if(value.from==='' || value.from) {
+            console.log(value)
             doctorTiming[day][index].from = value.from;
-        } else {
+            if(doctorTiming[day][index].from === doctorTiming[day][index].to) {
+                doctorTiming[day][index].to = '';
+            }
+        } else if(value.to==='' || value.to) {
             doctorTiming[day][index].to = value.to;
+        } else {
+            console.log('onChange Error!!!')
+            stateUpdate = false;
         }
 
-        isDirty[day] = true;
+        if(stateUpdate) {
+            isDirty[day] = true;
+    
+            this.setState({ doctorTiming, isDirty },()=>{
+                this._validateTimingForm()
+                console.log('onChange, ', this.state)
+            })
+        }
+    }
 
-        this.setState({ doctorTiming, isDirty },()=>{
-            this._validateTimingForm()
-            console.log('onChange, ', this.state)
-        })
+    _handleValidateError = (day) => {
+        const { doctorTiming } = this.state;
+
+        let fromRequired = false, toRequired = false, overlap = false;
+
+        for(let i=0; i<doctorTiming[day].length; i++) {
+            let obj = doctorTiming[day][i];
+            let nextObj = doctorTiming[day][i+1] ? doctorTiming[day][i+1] : null;
+            if(!obj.from || obj.from === '') {
+                fromRequired = true;
+                break;
+            } else if (!obj.to || obj.to === '') {
+                toRequired = true;
+                break;
+            } else if (nextObj && nextObj.from && nextObj.from < obj.to) {
+                overlap = true;
+                break;
+            } else {
+                continue;
+            }
+        }
+
+        let error = '';
+
+        if(fromRequired) {
+            error = "*From timing is Required";
+        } else if (toRequired) {
+            error = "*To timing is Required";
+        } else if (overlap) {
+            error = "*Timing is overlap! should be in proper order i.e. Morning->afternoon->evening;";
+        } else {
+            error = null;
+        }
+
+        return error;
     }
 
     _validateTimingForm = () => {
@@ -99,280 +151,84 @@ export default class EditDoctorTiming extends Component {
             switch(each) {
                 case 'monday': {
                     if (isDirty.monday) {
-                        for(let i=0; i<doctorTiming.monday.length; i++) {
-                            let obj = doctorTiming.monday[i]
-                            let obj2 = doctorTiming.monday[i+1] ? doctorTiming.monday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.monday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('monday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
                 }
                 case 'tuesday': {
                     if (isDirty.tuesday) {
-                        for(let i=0; i<doctorTiming.tuesday.length; i++) {
-                            let obj = doctorTiming.tuesday[i]
-                            let obj2 = doctorTiming.tuesday[i+1] ? doctorTiming.tuesday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.tuesday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('tuesday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
                 }
                 case 'wednesday': {
                     if (isDirty.wednesday) {
-                        for(let i=0; i<doctorTiming.wednesday.length; i++) {
-                            let obj = doctorTiming.wednesday[i]
-                            let obj2 = doctorTiming.wednesday[i+1] ? doctorTiming.wednesday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.wednesday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('wednesday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
                 }
                 case 'thursday': {
                     if (isDirty.thursday) {
-                        for(let i=0; i<doctorTiming.thursday.length; i++) {
-                            let obj = doctorTiming.thursday[i]
-                            let obj2 = doctorTiming.thursday[i+1] ? doctorTiming.thursday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.thursday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('thursday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
                 }
                 case 'friday': {
                     if (isDirty.friday) {
-                        for(let i=0; i<doctorTiming.friday.length; i++) {
-                            let obj = doctorTiming.friday[i]
-                            let obj2 = doctorTiming.friday[i+1] ? doctorTiming.friday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.friday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('friday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
                 }
                 case 'saturday': {
                     if (isDirty.saturday) {
-                        for(let i=0; i<doctorTiming.saturday.length; i++) {
-                            let obj = doctorTiming.saturday[i]
-                            let obj2 = doctorTiming.saturday[i+1] ? doctorTiming.saturday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.saturday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('saturday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
                 }
                 case 'sunday': {
                     if (isDirty.sunday) {
-                        for(let i=0; i<doctorTiming.sunday.length; i++) {
-                            let obj = doctorTiming.sunday[i]
-                            let obj2 = doctorTiming.sunday[i+1] ? doctorTiming.sunday[i+1] : null;
-                            // console.log(obj,obj2)
-                            if(!obj.from || obj.from === '') {
-                                errors[each] = "*From timing is Required";
-                                break;
-
-                            } else if(!obj.to || obj.to === '') {
-                                errors[each] = "*To timing is Required";
-                                break;
-
-                            } else if (obj.from>obj.to) {
-                                errors[each] = "*From should be less than to";
-                                break;
-
-                            } else if(obj2 && obj2.from >= obj.from && obj2.from < obj.to) {
-                                errors[each] = "*From timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.to > obj.from && obj2.to <= obj.to) {
-                                errors[each] = "*To timing is overlap";
-                                break;
-
-                            } else if(obj2 && obj2.from <= obj.from && obj2.to >= obj.to) {
-                                errors[each] = "*Timing is overlap";
-                                break;
-
-                            } else {
-                                if(i === doctorTiming.sunday.length-1) {
-                                    delete errors[each];
-                                    isDirty.name = false;
-                                }
-                            }
+                        let error = this._handleValidateError('sunday');
+                        if(!error || error === '') {
+                            delete errors[each];
+                            isDirty[each] = false;
+                        } else {
+                            errors[each] = error;
                         }
                     }
                     break;
@@ -394,6 +250,7 @@ export default class EditDoctorTiming extends Component {
         doctorTiming[day] = [...doctorTiming[day],{from:'',to:''}];
 
         this.setState({doctorTiming},()=>{
+            this._validateTimingForm()
             console.log('added, ',doctorTiming)
         })
     }
@@ -404,6 +261,7 @@ export default class EditDoctorTiming extends Component {
         doctorTiming[day].splice(index,1);
 
         this.setState({doctorTiming},()=>{
+            this._validateTimingForm()
             console.log('deleted, ',doctorTiming)
         })
     }
@@ -434,12 +292,13 @@ export default class EditDoctorTiming extends Component {
 
         const { timingLabels } = this.state;
 
-        const fromTimingOptions = timingLabels.map( t => {
+        const fromTimingOptions = timingLabels.map( (t,i) => {
+            if(i===timingLabels.length-1) return null;
             return <option key={t.value} value={t.value}>{t.label}</option>
         })
         
-        const toTimingOptions = timingLabels.map( t => {
-            if(t.value <= value.from) return null;
+        const toTimingOptions = timingLabels.map( (t,i) => {
+            if(t.value <= value.from || i===0) return null;
             return <option key={t.value} value={t.value}>{t.label}</option>
         })
 
@@ -512,6 +371,12 @@ export default class EditDoctorTiming extends Component {
     
         return (
             <div className="container">
+
+                {/* <img className="loader" 
+                src="https://media.giphy.com/media/xTk9ZvMnbIiIew7IpW/giphy.gif"
+                alt="loading..."
+                ></img> */}
+
                 <h3 className={classes.HeaderText}>Edit Work Timings</h3>
                 <hr />
 

@@ -39,6 +39,10 @@ export default class EditDoctorDetails extends Component {
             speciallization: false,
             superSpeciallization: false
         },
+        languages: [
+            'Hindi','English','Punjabi','Bengali','Marathi','Telugu',
+            'Tamil','Gujrati','Assamese','Kannada','Oriya','Malayalam'
+        ],
         specialties: [],
         errors: {}
     }
@@ -336,10 +340,26 @@ export default class EditDoctorDetails extends Component {
 
     render() {
 
-        const { doctorDetials, specialties, errors } = this.state;
+        const { doctorDetials, specialties, errors, languages } = this.state;
 
         const specialtiesOptions = specialties.map( s => {
             return <option key={s.id} value={s.id}>{s.name}</option>
+        })
+
+        const languagesCheckbox = languages.map( lang => {
+            return <FormGroup check key={lang}
+                    className={[classes.childCheckboxLanguage].join(' ')}>
+                        <Label check>
+                            <Input type="checkbox" 
+                            value={lang}
+                            onChange={(e) => 
+                                this._handleOnChange("languages",e.target)
+                            }
+                            checked={doctorDetials.languages.includes(lang)?true:false}
+                            />{' '}
+                            {lang}
+                        </Label>
+                    </FormGroup>
         })
 
         return (
@@ -437,158 +457,9 @@ export default class EditDoctorDetails extends Component {
                             <Label>Languages</Label>
 
                             <div className={classes.allLangulageCheckbox}>
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox" 
-                                        value='Hindi'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Hindi')?true:false}
-                                        />{' '}
-                                        Hindi
-                                    </Label>
-                                </FormGroup>
 
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox" 
-                                        value='English'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('English')?true:false}
-                                        />{' '}
-                                        English
-                                    </Label>
-                                </FormGroup>
+                                {languagesCheckbox}
 
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Punjabi'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Punjabi')?true:false}
-                                        />{' '}
-                                        Punjabi
-                                    </Label>
-                                </FormGroup>
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Bengali'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Bengali')?true:false}
-                                        />{' '}
-                                        Bengali
-                                    </Label>
-                                </FormGroup>
-
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Marathi'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Marathi')?true:false}
-                                        />{' '}
-                                        Marathi
-                                    </Label>
-                                </FormGroup>
-
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Telugu'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Telugu')?true:false}
-                                        />{' '}
-                                        Telugu
-                                    </Label>
-                                </FormGroup>
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Tamil'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Tamil')?true:false}
-                                        />{' '}
-                                        Tamil
-                                    </Label>
-                                </FormGroup>
-
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Gujrati'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Gujrati')?true:false}
-                                        />{' '}
-                                        Gujrati
-                                    </Label>
-                                </FormGroup>
-
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Assamese'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Assamese')?true:false}
-                                        />{' '}
-                                        Assamese
-                                    </Label>
-                                </FormGroup>
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Kannada'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Kannada')?true:false}
-                                        />{' '}
-                                        Kannada
-                                    </Label>
-                                </FormGroup>
-
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Oriya'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Oriya')?true:false}
-                                        />{' '}
-                                        Oriya
-                                    </Label>
-                                </FormGroup>
-
-                                <FormGroup check className={[classes.childCheckboxLanguage].join(' ')}>
-                                    <Label check>
-                                        <Input type="checkbox"
-                                        value='Malayalam'
-                                        onChange={(e) => 
-                                            this._handleOnChange("languages",e.target)
-                                        }
-                                        checked={doctorDetials.languages.includes('Malayalam')?true:false}
-                                        />{' '}
-                                        Malayalam
-                                    </Label>
-                                </FormGroup>
                             </div>
                             
                             {errors && (
