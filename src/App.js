@@ -16,7 +16,7 @@ function App() {
     <div className="App">
       <Switch>
         
-        <Route exact path="/" render={() => <Redirect to="/edit-doctor-timing" />} />
+        <Route exact path="/" render={() => <Redirect to="/edit-doctor-info" />} />
 
         <Route path="/edit-doctor-info" component={EditDoctorDetails} />
 
